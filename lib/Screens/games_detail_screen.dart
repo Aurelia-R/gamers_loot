@@ -3,18 +3,21 @@ import '../Models/giveaway_model.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:trial_app/Services/currency_service.dart';
 import 'package:trial_app/Services/timezone_service.dart';
+import 'package:trial_app/Services/wishlist_service.dart';
 import 'package:trial_app/theme/app_theme.dart';
 
 class GiveawayDetailPage extends StatefulWidget {
   final Giveaway giveaway;
   final String selectedCurrency;
   final String selectedTimezone;
+  final String? userId; // User ID untuk wishlist
   
   const GiveawayDetailPage({
     super.key,
     required this.giveaway,
     this.selectedCurrency = 'USD',
     this.selectedTimezone = 'WIB',
+    this.userId, // Optional, kalau tidak ada berarti tidak bisa wishlist
   });
 
   @override
@@ -22,7 +25,72 @@ class GiveawayDetailPage extends StatefulWidget {
 }
 
 class _GiveawayDetailPageState extends State<GiveawayDetailPage> {
+  // Service untuk currency conversion
   final currencyService = CurrencyService();
+  
+  // Service untuk wishlist
+  final wishlistService = WishlistService();
+  
+  // Variabel untuk mengecek apakah game ada di wishlist
+  bool isInWishlist = false;
+  
+  // Fungsi untuk mengecek wishlist saat pertama kali buka halaman
+  @override
+  void initState() {
+    super.initState();
+    _checkWishlist();
+  }
+  
+  // Cek apakah game ini ada di wishlist user
+  Future<void> _checkWishlist() async {
+    // Kalau tidak ada userId, skip
+    if (widget.userId == null) return;
+    
+    // Cek apakah game ada di wishlist
+    final exists = await wishlistService.exists(widget.userId!, widget.giveaway.id);
+    
+    // Update state
+    if (mounted) {
+      setState(() {
+        isInWishlist = exists;
+      });
+    }
+  }
+  
+  // Fungsi untuk toggle wishlist (tambah/hapus)
+  Future<void> _toggleWishlist() async {
+    // Kalau tidak ada userId, tidak bisa wishlist
+    if (widget.userId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Login dulu untuk menambah wishlist')),
+      );
+      return;
+    }
+    
+    // Toggle wishlist (kalau sudah ada, hapus. kalau belum, tambah)
+    await wishlistService.toggle(widget.userId!, widget.giveaway.id);
+    
+    // Cek lagi status wishlist setelah toggle
+    final exists = await wishlistService.exists(widget.userId!, widget.giveaway.id);
+    
+    // Update state
+    setState(() {
+      isInWishlist = exists;
+    });
+    
+    // Tampilkan pesan
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            isInWishlist 
+              ? 'Ditambahkan ke wishlist' 
+              : 'Dihapus dari wishlist'
+          ),
+        ),
+      );
+    }
+  }
   
   @override
   Widget build(BuildContext context) {
@@ -31,6 +99,20 @@ class _GiveawayDetailPageState extends State<GiveawayDetailPage> {
       appBar: AppBar(
         backgroundColor: AppTheme.navyDark,
         title: Text(widget.giveaway.title),
+        // Tambahkan wishlist button di AppBar
+        actions: [
+          // Tombol wishlist (icon heart)
+          IconButton(
+            icon: Icon(
+              // Kalau ada di wishlist, pakai heart penuh (merah)
+              // Kalau tidak ada, pakai heart kosong (putih)
+              isInWishlist ? Icons.favorite : Icons.favorite_border,
+              color: isInWishlist ? Colors.red : AppTheme.white,
+            ),
+            onPressed: _toggleWishlist,
+            tooltip: isInWishlist ? 'Hapus dari wishlist' : 'Tambah ke wishlist',
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Column(

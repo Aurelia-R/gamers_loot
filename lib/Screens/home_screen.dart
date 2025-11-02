@@ -533,6 +533,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 giveaway: g,
                 selectedCurrency: _selectedCurrency,
                 selectedTimezone: _selectedTimezone,
+                userId: widget.user.id, // Kirim user ID untuk wishlist
               ),
             ),
           );

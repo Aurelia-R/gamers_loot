@@ -6,16 +6,9 @@ import 'package:trial_app/Controllers/auth_controller.dart';
 import 'package:trial_app/Services/session_service.dart';
 import 'package:trial_app/Screens/login_screen.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:trial_app/Services/wishlist_service.dart';
-import 'package:trial_app/Controllers/giveaway_controller.dart';
-import 'package:trial_app/Models/giveaway_model.dart';
-import 'package:trial_app/Screens/games_detail_screen.dart';
-import 'package:trial_app/Services/event_service.dart';
-import 'package:trial_app/Controllers/event.model.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:qr_flutter/qr_flutter.dart';
-import 'package:bcrypt/bcrypt.dart';
 import 'package:trial_app/theme/app_theme.dart';
+import 'package:trial_app/Screens/wishlist_screen.dart';
+import 'package:trial_app/Screens/tickets_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   final UserModel user;
@@ -35,9 +28,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _saving = false;
   bool _isEditing = false; // Mode edit/view
   final _picker = ImagePicker();
-  final _wishlist = WishlistService();
-  final _giveawayController = GiveawayController();
-  final _eventService = EventService();
 
   @override
   void initState() {
@@ -166,448 +156,512 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     final avatarUrl = _photoUrl.text.trim().isEmpty ? null : _photoUrl.text.trim();
     return Scaffold(
+      backgroundColor: AppTheme.navyDark,
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Profile Card
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  children: [
-                    // Header dengan icon edit
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Profile Information',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        IconButton(
-                          icon: Icon(
-                            _isEditing ? Icons.close : Icons.edit,
-                            color: _isEditing ? Colors.red : AppTheme.green,
-                          ),
-                          onPressed: _saving ? null : _toggleEditMode,
-                          tooltip: _isEditing ? 'Batal Edit' : 'Edit Profile',
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                    // Avatar
-                    Stack(
-                      children: [
-                        SizedBox(
-                          width: 120,
-                          height: 120,
-                          child: ClipOval(
-                            child: avatarUrl != null
-                                ? Image.network(
-                                    avatarUrl,
-                                    key: ValueKey(avatarUrl),
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return Container(
-                                        color: Colors.grey.shade300,
-                                        alignment: Alignment.center,
-                                        child: Text(
-                                          widget.user.username.isNotEmpty 
-                                              ? widget.user.username[0].toUpperCase() 
-                                              : '?',
-                                          style: const TextStyle(
-                                            fontSize: 48,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.grey,
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                  )
-                                : Container(
-                                    color: Colors.grey.shade300,
-                                    alignment: Alignment.center,
-                                    child: Text(
-                                      widget.user.username.isNotEmpty 
-                                          ? widget.user.username[0].toUpperCase() 
-                                          : '?',
-                                      style: const TextStyle(
-                                        fontSize: 48,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.grey,
-                                      ),
-                                    ),
-                                  ),
-                          ),
-                        ),
-                        // Upload button overlay (hanya muncul saat edit mode)
-                        if (_isEditing)
-                          Positioned(
-                            bottom: 0,
-                            right: 0,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: AppTheme.green,
-                                shape: BoxShape.circle,
-                                border: Border.all(color: Colors.white, width: 3),
-                              ),
-                              child: IconButton(
-                                icon: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
-                                onPressed: _saving ? null : _pickAndUpload,
-                                tooltip: 'Ubah Foto',
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                    // Username
-                    if (_isEditing)
-                      TextField(
-                        controller: _uname,
-                        decoration: const InputDecoration(
-                          labelText: 'Username',
-                          prefixIcon: Icon(Icons.person),
-                        ),
-                        enabled: !_saving,
-                      )
-                    else
-                      _buildInfoRow(
-                        icon: Icons.person,
-                        label: 'Username',
-                        value: widget.user.username,
-                      ),
-                    const SizedBox(height: 16),
-                    // Email
-                    if (_isEditing)
-                      TextField(
-                        controller: _email,
-                        decoration: const InputDecoration(
-                          labelText: 'Email',
-                          prefixIcon: Icon(Icons.email),
-                        ),
-                        enabled: !_saving,
-                        keyboardType: TextInputType.emailAddress,
-                      )
-                    else
-                      _buildInfoRow(
-                        icon: Icons.email,
-                        label: 'Email',
-                        value: widget.user.email,
-                      ),
-                    // Save button (hanya muncul saat edit mode)
-                    if (_isEditing) ...[
-                      const SizedBox(height: 24),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: ElevatedButton.icon(
-                              onPressed: _saving ? null : _save,
-                              icon: _saving
-                                  ? const SizedBox(
-                                      width: 16,
-                                      height: 16,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: Colors.white,
-                                      ),
-                                    )
-                                  : const Icon(Icons.save),
-                              label: Text(_saving ? 'Menyimpan...' : 'Simpan Perubahan'),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppTheme.green,
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(vertical: 14),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+            // Compact Header
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(16, 40, 16, 16),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    AppTheme.navyDark,
+                    AppTheme.navyDark.withOpacity(0.8),
                   ],
                 ),
               ),
-            ),
-            const SizedBox(height: 20),
-            // Delete Account Button
-            Card(
-              color: Colors.red.shade50,
-              child: ListTile(
-                leading: const Icon(Icons.delete_forever, color: Colors.red),
-                title: const Text(
-                  'Hapus Akun',
-                  style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
-                ),
-                subtitle: const Text(
-                  'Tindakan ini tidak dapat dibatalkan',
-                  style: TextStyle(fontSize: 12),
-                ),
-                onTap: _confirmDelete,
+              child: Row(
+                children: [
+                  // Avatar
+                  Stack(
+          children: [
+            SizedBox(
+                        width: 70,
+                        height: 70,
+              child: ClipOval(
+                child: avatarUrl != null
+                    ? Image.network(
+                        avatarUrl,
+                        key: ValueKey(avatarUrl),
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            color: Colors.grey.shade300,
+                            alignment: Alignment.center,
+                            child: Text(
+                                        widget.user.username.isNotEmpty 
+                                            ? widget.user.username[0].toUpperCase() 
+                                            : '?',
+                                        style: const TextStyle(
+                                          fontSize: 28,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.grey,
+                                        ),
+                            ),
+                          );
+                        },
+                      )
+                    : Container(
+                        color: Colors.grey.shade300,
+                        alignment: Alignment.center,
+                        child: Text(
+                                    widget.user.username.isNotEmpty 
+                                        ? widget.user.username[0].toUpperCase() 
+                                        : '?',
+                                    style: const TextStyle(
+                                      fontSize: 28,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.grey,
+                                    ),
+                        ),
+                      ),
               ),
             ),
-            const SizedBox(height: 32),
-            const Divider(),
-            const SizedBox(height: 16),
-            const Text('My Wishlist', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 16),
-            FutureBuilder<List<Giveaway>>(
-              future: _fetchWishlistGiveaways(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (snapshot.hasError) {
-                  return Text('Error: ${snapshot.error}');
-                }
-                final wishlistItems = snapshot.data ?? [];
-                if (wishlistItems.isEmpty) {
-                  return const Padding(
-                    padding: EdgeInsets.all(16.0),
-                    child: Text('Wishlist kosong', style: TextStyle(color: Colors.grey)),
-                  );
-                }
-                return ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: wishlistItems.length,
-                  itemBuilder: (context, i) {
-                    final g = wishlistItems[i];
-                    return Card(
-                      margin: const EdgeInsets.symmetric(vertical: 4),
-                      child: ListTile(
-                        leading: g.thumbnail != null && g.thumbnail!.isNotEmpty
-                            ? Image.network(g.thumbnail!, width: 60, height: 60, fit: BoxFit.cover)
-                            : const SizedBox(width: 60, height: 60, child: Icon(Icons.videogame_asset)),
-                        title: Text(g.title),
-                        subtitle: Text(
-                          g.description ?? '',
+                      // Upload button overlay (hanya muncul saat edit mode)
+                      if (_isEditing)
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: AppTheme.green,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 2),
+                            ),
+                            child: IconButton(
+                              icon: const Icon(Icons.camera_alt, color: Colors.white, size: 14),
+                              onPressed: _saving ? null : _pickAndUpload,
+                              tooltip: 'Ubah Foto',
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(width: 16),
+                  // Name and Email
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                        Text(
+                          widget.user.username,
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.white,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          widget.user.email,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: AppTheme.white.withOpacity(0.7),
+                          ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.favorite, color: Colors.red),
-                          onPressed: () async {
-                            await _wishlist.toggle(widget.user.id, g.id);
-                            setState(() {});
-                          },
+                      ],
+                    ),
+                  ),
+                  // Edit button
+                  IconButton(
+                    icon: Icon(
+                      _isEditing ? Icons.close : Icons.edit,
+                      color: _isEditing ? Colors.red : AppTheme.white,
+                    ),
+                    onPressed: _saving ? null : _toggleEditMode,
+                    tooltip: _isEditing ? 'Batal Edit' : 'Edit Profile',
+                ),
+              ],
+            ),
+            ),
+
+            // Profile Information Card (compact)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Card(
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+              children: [
+                      // Username
+                      if (_isEditing)
+                        TextField(
+                          controller: _uname,
+                          decoration: const InputDecoration(
+                            labelText: 'Username',
+                            prefixIcon: Icon(Icons.person, size: 20),
+                            border: OutlineInputBorder(),
+                            isDense: true,
+                            contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                          ),
+                          enabled: !_saving,
+                        )
+                      else
+                        _buildCompactInfoRow(
+                          icon: Icons.person,
+                          label: 'Username',
+                          value: widget.user.username,
                         ),
+                      const SizedBox(height: 12),
+                      // Email
+                      if (_isEditing)
+                        TextField(
+                          controller: _email,
+                          decoration: const InputDecoration(
+                            labelText: 'Email',
+                            prefixIcon: Icon(Icons.email, size: 20),
+                            border: OutlineInputBorder(),
+                            isDense: true,
+                            contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                          ),
+                          enabled: !_saving,
+                          keyboardType: TextInputType.emailAddress,
+                        )
+                      else
+                        _buildCompactInfoRow(
+                          icon: Icons.email,
+                          label: 'Email',
+                          value: widget.user.email,
+                        ),
+                      // Save button (hanya muncul saat edit mode)
+                      if (_isEditing) ...[
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: _saving ? null : _save,
+                            icon: _saving
+                                ? const SizedBox(
+                                    width: 14,
+                                    height: 14,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                : const Icon(Icons.save, size: 18),
+                            label: Text(_saving ? 'Menyimpan...' : 'Simpan'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppTheme.green,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+            // Menu Section (compact)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Column(
+                children: [
+                  // My Wishlist
+                  _buildCompactMenuCard(
+                    icon: Icons.favorite,
+                    iconColor: Colors.red,
+                    title: 'My Wishlist',
                         onTap: () {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => GiveawayDetailPage(giveaway: g),
+                          builder: (_) => WishlistScreen(user: widget.user),
                             ),
                           );
                         },
                       ),
-                    );
-                  },
+                  const SizedBox(height: 8),
+                  // My Tickets
+                  _buildCompactMenuCard(
+                    icon: Icons.event,
+                    iconColor: Colors.blue,
+                    title: 'My Tickets',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => TicketsScreen(user: widget.user),
+                        ),
                 );
               },
             ),
-            const SizedBox(height: 32),
-            const Divider(),
+                  const SizedBox(height: 8),
+                  // Kesan dan Pesan
+                  _buildCompactMenuCard(
+                    icon: Icons.comment,
+                    iconColor: AppTheme.green,
+                    title: 'Kesan dan Pesan',
+                    onTap: () => _showFeedbackDialog(),
+                  ),
             const SizedBox(height: 16),
-            const Text('My Tickets', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                  // Delete Account Button (kecil)
+                  TextButton.icon(
+                    onPressed: _confirmDelete,
+                    icon: const Icon(Icons.delete_forever, size: 18),
+                    label: const Text(
+                      'Hapus Akun',
+                      style: TextStyle(fontSize: 13),
+                    ),
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.red,
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    ),
+                  ),
             const SizedBox(height: 16),
-            FutureBuilder<List<EventModel>>(
-              future: _eventService.getMyTickets(widget.user.id),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                final tickets = snapshot.data ?? [];
-                if (tickets.isEmpty) {
-                  return const Padding(
-                    padding: EdgeInsets.all(16.0),
-                    child: Text('Belum ada tiket event', style: TextStyle(color: Colors.grey)),
-                  );
-                }
-                return ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: tickets.length,
-                  itemBuilder: (context, i) {
-                    final e = tickets[i];
-                    // Generate unique QR code data untuk tiket ini
-                    final qrData = _generateQRData(e, widget.user.id);
-                    
-                    return Card(
-                      margin: const EdgeInsets.symmetric(vertical: 4),
-                      child: ListTile(
-                        leading: const Icon(Icons.event, size: 40, color: Colors.blue),
-                        title: Text(e.name),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('${e.location} • ${e.date.toLocal().toString().split('.')[0]}'),
-                            Text('${e.claimedCount}/${e.maxTicket} tickets claimed'),
-                          ],
-                        ),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            // QR Code button
-                            IconButton(
-                              icon: const Icon(Icons.qr_code),
-                              onPressed: () => _showQRDialog(context, e, qrData),
-                              tooltip: 'Lihat QR Code',
-                            ),
-                            // Map button
-                            IconButton(
-                              icon: const Icon(Icons.map),
-                              onPressed: () async {
-                                final url = 'https://www.google.com/maps/search/?api=1&query=${e.latitude},${e.longitude}';
-                                final uri = Uri.parse(url);
-                                if (await canLaunchUrl(uri)) {
-                                  await launchUrl(uri, mode: LaunchMode.externalApplication);
-                                }
-                              },
+                ],
+              ),
                             ),
                           ],
                         ),
                       ),
                     );
-                  },
-                );
-              },
-            ),
-          ],
+  }
+
+  // Helper widget untuk compact menu card
+  Widget _buildCompactMenuCard({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required VoidCallback onTap,
+  }) {
+    return Card(
+      elevation: 1,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        leading: Container(
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: iconColor.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Icon(icon, color: iconColor, size: 20),
+        ),
+        title: Text(
+          title,
+          style: const TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
+          ),
+        ),
+        trailing: const Icon(Icons.chevron_right, color: Colors.grey, size: 20),
+        onTap: onTap,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
         ),
       ),
     );
   }
 
-  Future<List<Giveaway>> _fetchWishlistGiveaways() async {
-    try {
-      final wishlistIds = await _wishlist.getAll(widget.user.id);
-      if (wishlistIds.isEmpty) return [];
-      
-      final allGiveaways = await _giveawayController.fetchGiveaways();
-      return allGiveaways.where((g) => wishlistIds.contains(g.id)).toList();
-    } catch (e) {
-      return [];
-    }
-  }
-
-  // Generate unique QR code data untuk tiket
-  String _generateQRData(EventModel event, String userId) {
-    // Gabungkan event ID, user ID, dan timestamp untuk uniqueness
-    final combined = '${event.id}_${userId}_${event.date.millisecondsSinceEpoch}';
-    
-    // Generate hash menggunakan bcrypt dengan salt tetap untuk konsistensi
-    // Format salt bcrypt: $2y$10$ + 22 karakter base64
-    // Salt tetap: "TICKETQR2024ABCDEFGHIJKL" (22 chars setelah prefix)
-    final fixedSalt = r'$2y$10$TICKETQR2024ABCDEFGHIJKL';
-    final hash = BCrypt.hashpw(combined, fixedSalt);
-    
-    // Ambil bagian hash setelah prefix "$2y$10$" (31 karakter)
-    final hashPart = hash.substring(7);
-    
-    // Format QR data: TICKET|EVENT_ID|USER_ID|HASH
-    return 'TICKET|${event.id}|$userId|$hashPart';
-  }
-
-  // Helper widget untuk menampilkan info row (view mode)
-  Widget _buildInfoRow({required IconData icon, required String label, required String value}) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: AppTheme.navyDark, size: 24),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey.shade600,
-                    fontWeight: FontWeight.w500,
-                  ),
+  // Helper widget untuk compact info row
+  Widget _buildCompactInfoRow({required IconData icon, required String label, required String value}) {
+    return Row(
+      children: [
+        Icon(icon, color: AppTheme.navyDark, size: 18),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Colors.grey.shade600,
+                  fontWeight: FontWeight.w500,
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  value,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
-  // Tampilkan dialog dengan QR code
-  void _showQRDialog(BuildContext context, EventModel event, String qrData) {
+  // Dialog untuk Kesan dan Pesan
+  void _showFeedbackDialog() {
     showDialog(
       context: context,
       builder: (context) => Dialog(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.7,
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                event.name,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Ticket QR Code',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey.shade600,
-                ),
-              ),
-              const SizedBox(height: 16),
-              // QR Code
+              // Header
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.shade300),
+                  color: AppTheme.green,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(16),
+                    topRight: Radius.circular(16),
+                  ),
                 ),
-                child: QrImageView(
-                  data: qrData,
-                  version: QrVersions.auto,
-                  size: 200.0,
-                  backgroundColor: Colors.white,
+                child: Row(
+                  children: [
+                    const Icon(Icons.comment, color: Colors.white),
+                    const SizedBox(width: 8),
+                    const Expanded(
+                      child: Text(
+                        'Kesan dan Pesan',
+                        style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close, color: Colors.white),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 16),
+              // Content
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Subtitle
               Text(
-                'Scan QR code untuk verifikasi tiket',
+                        'Mata Kuliah Pemrograman Aplikasi Mobile',
                 style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey.shade600,
+                  fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey.shade700,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      
+                      // Kesan Section
+                      Row(
+                        children: [
+                          Icon(Icons.thumb_up, color: AppTheme.green, size: 20),
+                          const SizedBox(width: 8),
+                          const Text(
+                            'Kesan',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+              Container(
+                        width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                          color: Colors.grey.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey.shade200),
+                        ),
+                        child: const Text(
+                          'Mata kuliah Pemrograman Aplikasi Mobile memberikan pengalaman yang sangat berharga dalam pembelajaran pengembangan aplikasi mobile. Dengan menggunakan Flutter, saya dapat memahami konsep multiplatform development yang memungkinkan pembuatan aplikasi untuk Android dan iOS secara bersamaan. Materi yang disampaikan sangat komprehensif, mulai dari dasar-dasar Flutter, state management, hingga integrasi dengan database dan API. Praktik langsung dalam membuat aplikasi memberikan pemahaman yang lebih mendalam dibandingkan hanya teori saja. Dosen yang mengajar sangat membantu dan sabar dalam menjelaskan setiap konsep yang sulit dipahami.',
+                          style: TextStyle(
+                            fontSize: 14,
+                            height: 1.6,
+                            color: Colors.black87,
+                          ),
+                          textAlign: TextAlign.justify,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      
+                      // Pesan Section
+                      Row(
+                        children: [
+                          Icon(Icons.message, color: AppTheme.green, size: 20),
+                          const SizedBox(width: 8),
+                          const Text(
+                            'Pesan',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade50,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey.shade200),
+                        ),
+                        child: const Text(
+                          'Kedepannya, saya berharap mata kuliah ini dapat terus dikembangkan dengan menambahkan materi tentang deployment aplikasi ke Play Store dan App Store, serta best practices dalam pengembangan aplikasi mobile yang scalable. Semoga juga dapat ditambahkan lebih banyak praktik tentang integrasi dengan berbagai API dan teknologi terkini seperti AI/ML integration dalam aplikasi mobile. Terima kasih atas pembelajaran yang sangat bermanfaat ini!',
+                style: TextStyle(
+                            fontSize: 14,
+                            height: 1.6,
+                            color: Colors.black87,
+                          ),
+                          textAlign: TextAlign.justify,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 16),
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Tutup'),
+              // Footer
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.green,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text('Tutup'),
+                  ),
+                ),
               ),
             ],
           ),
@@ -615,4 +669,5 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
     );
   }
+
 }
