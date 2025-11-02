@@ -15,7 +15,7 @@ class EventScreen extends StatefulWidget {
 }
 
 class _EventScreenState extends State<EventScreen> {
-  // Variabel
+
   final EventService eventService = EventService();
   List<EventModel> events = [];
   Position? currentPosition;
@@ -28,13 +28,11 @@ class _EventScreenState extends State<EventScreen> {
     _getCurrentLocation();
   }
 
-  // Load events dari Hive
   Future<void> _loadEvents() async {
     setState(() => _isLoading = true);
     await eventService.init();
     final loadedEvents = await eventService.getEvents();
 
-    // Jika belum ada events, buat dummy data
     if (loadedEvents.isEmpty) {
       events = [
         EventModel(
@@ -64,9 +62,8 @@ class _EventScreenState extends State<EventScreen> {
     if (mounted) setState(() => _isLoading = false);
   }
 
-  // Ambil lokasi user
   Future<void> _getCurrentLocation() async {
-    // Cek apakah location service enabled
+
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
       if (!mounted) return;
@@ -76,10 +73,9 @@ class _EventScreenState extends State<EventScreen> {
       return;
     }
 
-    // Cek permission
     LocationPermission permission = await Geolocator.checkPermission();
     
-    // Jika belum diizinkan, minta permission
+
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       
@@ -92,7 +88,6 @@ class _EventScreenState extends State<EventScreen> {
       }
     }
 
-    // Jika ditolak permanen
     if (permission == LocationPermission.deniedForever) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -101,7 +96,6 @@ class _EventScreenState extends State<EventScreen> {
       return;
     }
 
-    // Ambil lokasi
     try {
       currentPosition = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
@@ -118,7 +112,6 @@ class _EventScreenState extends State<EventScreen> {
     }
   }
 
-  // Hitung jarak dari user ke event
   double _calculateDistance(EventModel event) {
     if (currentPosition == null) return 0.0;
     return Geolocator.distanceBetween(
@@ -126,10 +119,9 @@ class _EventScreenState extends State<EventScreen> {
       currentPosition!.longitude,
       event.latitude,
       event.longitude,
-    ) / 1000.0; // Convert ke km
+    ) / 1000.0;
   }
 
-  // Format tanggal menjadi string yang readable
   String _formatDate(DateTime date) {
     final days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
@@ -144,26 +136,20 @@ class _EventScreenState extends State<EventScreen> {
     return '$dayName, $day $month $year • $hour:$minute';
   }
 
-  // Buka Google Maps eksternal dengan 2 lokasi
   Future<void> _openMap(EventModel event) async {
-    // Koordinat event
+
     final eventLat = event.latitude;
     final eventLng = event.longitude;
 
-    // Ambil lokasi user (jika belum ada, minta permission dulu)
     if (currentPosition == null) {
       await _getCurrentLocation();
     }
 
-    // Gunakan lokasi user jika ada, kalau tidak gunakan lokasi event sebagai start
     final userLat = currentPosition?.latitude ?? eventLat;
     final userLng = currentPosition?.longitude ?? eventLng;
 
-    // Format URL Google Maps dengan directions (menampilkan 2 lokasi)
-    // Format: https://www.google.com/maps/dir/[start_lat],[start_lng]/[end_lat],[end_lng]
     final googleMapsUrl = 'https://www.google.com/maps/dir/$userLat,$userLng/$eventLat,$eventLng';
 
-    // Buka Google Maps app
     final uri = Uri.parse(googleMapsUrl);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
@@ -175,7 +161,6 @@ class _EventScreenState extends State<EventScreen> {
     }
   }
 
-  // Claim tiket event
   Future<void> _claimTicket(EventModel event) async {
     if (widget.userId == null) {
       if (!mounted) return;
@@ -189,12 +174,12 @@ class _EventScreenState extends State<EventScreen> {
     if (!mounted) return;
 
     if (success) {
-      // Tampilkan SnackBar
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Tiket berhasil di-claim!')),
       );
       
-      // Tampilkan notifikasi
+
       await NotificationService.showTicketClaimedNotification(event.name);
       
       await _loadEvents();
@@ -269,7 +254,7 @@ class _EventScreenState extends State<EventScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Header dengan title dan status
+
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -286,7 +271,7 @@ class _EventScreenState extends State<EventScreen> {
                               ),
                             ),
                             const SizedBox(height: 8),
-                            // Location
+
                             Row(
                               children: [
                                 Icon(Icons.location_on, size: 16, color: Colors.grey.shade600),
@@ -303,7 +288,7 @@ class _EventScreenState extends State<EventScreen> {
                               ],
                             ),
                             const SizedBox(height: 4),
-                            // Date
+
                             Row(
                               children: [
                                 Icon(Icons.calendar_today, size: 16, color: Colors.grey.shade600),
@@ -320,7 +305,7 @@ class _EventScreenState extends State<EventScreen> {
                           ],
                         ),
                       ),
-                      // Status badge
+
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(
@@ -357,10 +342,10 @@ class _EventScreenState extends State<EventScreen> {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  // Info bar (distance & tickets)
+
                   Row(
                     children: [
-                      // Distance
+
                       if (currentPosition != null && distance > 0)
                         Expanded(
                           child: Container(
@@ -391,7 +376,7 @@ class _EventScreenState extends State<EventScreen> {
                           ),
                         ),
                       if (currentPosition != null && distance > 0) const SizedBox(width: 8),
-                      // Tickets count
+
                       Expanded(
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -421,10 +406,10 @@ class _EventScreenState extends State<EventScreen> {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  // Action buttons
+
                   Row(
                     children: [
-                      // Map button
+
                       Expanded(
                         child: OutlinedButton.icon(
                           onPressed: () => _openMap(event),
@@ -441,7 +426,7 @@ class _EventScreenState extends State<EventScreen> {
                         ),
                       ),
                       const SizedBox(width: 12),
-                      // Claim button
+
                       Expanded(
                         flex: 2,
                         child: ElevatedButton.icon(

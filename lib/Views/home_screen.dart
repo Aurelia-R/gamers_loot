@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:trial_app/Models/user_model.dart';
 import 'package:trial_app/Controllers/auth_controller.dart';
-import 'package:trial_app/Screens/login_screen.dart';
-import 'package:trial_app/Screens/profile_screen.dart';
+import 'package:trial_app/Views/login_screen.dart';
+import 'package:trial_app/Views/profile_screen.dart';
 import 'package:trial_app/Controllers/giveaway_controller.dart';
 import 'package:trial_app/Models/giveaway_model.dart';
-import 'package:trial_app/Screens/games_detail_screen.dart';
+import 'package:trial_app/Views/games_detail_screen.dart';
 import 'package:trial_app/Services/wishlist_service.dart';
 import 'package:trial_app/Services/currency_service.dart';
 import 'package:trial_app/theme/app_theme.dart';
-import 'package:trial_app/Screens/event_screen.dart';
+import 'package:trial_app/Views/event_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final UserModel user;
@@ -20,23 +20,23 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  // Variabel
+
   final _auth = AuthController();
   final Future<List<Giveaway>> _futureGiveaways = GiveawayController().fetchGiveaways();
   final _wishlist = WishlistService();
   final _currencyService = CurrencyService();
   int _currentIndex = 0;
   
-  // Search dan filter
+
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   String? _selectedPlatform;
   
-  // Currency
+
   String _selectedCurrency = 'USD';
   final List<String> _currencies = ['USD', 'IDR', 'GBP', 'EUR', 'JPY'];
   
-  // Timezone
+
   String _selectedTimezone = 'WIB';
   final List<String> _timezones = ['WIB', 'WITA', 'WIT', 'London', 'Amerika'];
 
@@ -94,15 +94,14 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // Dapatkan semua platform unik (pisahkan yang ada koma)
   List<String> _getPlatforms(List<Giveaway> giveaways) {
     final platforms = <String>{};
     for (var g in giveaways) {
       if (g.platform != null && g.platform!.isNotEmpty) {
-        // Pisahkan platform yang dipisahkan koma
+
         final platformList = g.platform!.split(',');
         for (var platform in platformList) {
-          // Trim whitespace dan tambahkan jika tidak kosong
+
           final trimmed = platform.trim();
           if (trimmed.isNotEmpty) {
             platforms.add(trimmed);
@@ -113,11 +112,9 @@ class _HomeScreenState extends State<HomeScreen> {
     return platforms.toList()..sort();
   }
 
-  // Filter giveaways berdasarkan search dan platform
   List<Giveaway> _filterGiveaways(List<Giveaway> giveaways) {
     var filtered = giveaways;
 
-    // Filter berdasarkan search query
     if (_searchQuery.isNotEmpty) {
       filtered = filtered.where((g) {
         final title = g.title.toLowerCase();
@@ -127,11 +124,10 @@ class _HomeScreenState extends State<HomeScreen> {
       }).toList();
     }
 
-    // Filter berdasarkan platform
     if (_selectedPlatform != null && _selectedPlatform!.isNotEmpty) {
       filtered = filtered.where((g) {
         if (g.platform == null || g.platform!.isEmpty) return false;
-        // Split platform yang ada koma dan cek apakah ada yang match
+
         final platformList = g.platform!.split(',').map((p) => p.trim().toLowerCase()).toList();
         return platformList.contains(_selectedPlatform!.toLowerCase());
       }).toList();
@@ -209,7 +205,7 @@ class _HomeScreenState extends State<HomeScreen> {
           }
           final allGiveaways = snapshot.data ?? const <Giveaway>[];
           
-          // Filter giveaways
+
           final filteredGiveaways = _filterGiveaways(allGiveaways);
           final platforms = _getPlatforms(allGiveaways);
 
@@ -228,7 +224,7 @@ class _HomeScreenState extends State<HomeScreen> {
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  // Header dengan greeting dan logo
+
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.fromLTRB(20, 50, 20, 20),
@@ -245,7 +241,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Greeting
+
                         Text(
                           'Halo, ${widget.user.username}! 👋',
                           style: const TextStyle(
@@ -266,7 +262,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   
-                  // Search bar dengan card style
+
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
                     child: Card(
@@ -304,7 +300,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
 
-                  // Filter section dalam card
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     child: Card(
@@ -317,7 +312,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Filter currency dan timezone
+
                             Row(
                               children: [
                                 Expanded(
@@ -376,7 +371,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               ],
                             ),
                             const SizedBox(height: 12),
-                            // Filter platform
+
                             Text(
                               'Platform',
                               style: TextStyle(
@@ -391,7 +386,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               child: ListView(
                                 scrollDirection: Axis.horizontal,
                                 children: [
-                                  // Chip "Semua Platform"
+
                                   Padding(
                                     padding: const EdgeInsets.only(right: 8),
                                     child: FilterChip(
@@ -404,7 +399,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       },
                                     ),
                                   ),
-                                  // Chips untuk setiap platform
+
                                   ...platforms.map((platform) {
                                     return Padding(
                                       padding: const EdgeInsets.only(right: 8),
@@ -430,7 +425,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   const SizedBox(height: 12),
 
-                  // Results count
                   if (filteredGiveaways.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -450,7 +444,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   const SizedBox(height: 12),
 
-                  // Grid giveaways dengan Wrap untuk menghindari overflow
                   filteredGiveaways.isEmpty
                       ? SizedBox(
                           height: MediaQuery.of(context).size.height * 0.5,
@@ -488,9 +481,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           padding: const EdgeInsets.all(16),
                           child: LayoutBuilder(
                             builder: (context, constraints) {
-                              // Hitung lebar setiap card (constraints sudah minus padding)
-                              final cardWidth = (constraints.maxWidth - 16) / 2; // 16 = spacing antara cards
-                              final cardHeight = cardWidth / 0.70; // Disesuaikan untuk menghindari overflow
+
+                              final cardWidth = (constraints.maxWidth - 16) / 2;
+                              final cardHeight = cardWidth / 0.70;
                               
                               return Wrap(
                                 spacing: 16,
@@ -507,7 +500,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             },
                           ),
                         ),
-                  const SizedBox(height: 20), // Padding bottom untuk scroll
+                  const SizedBox(height: 20),
                 ],
               ),
             ),
@@ -516,7 +509,6 @@ class _HomeScreenState extends State<HomeScreen> {
       );
   }
 
-  // Buat card untuk game di grid
   Widget _buildGameCard(Giveaway g) {
     return Card(
       clipBehavior: Clip.antiAlias,
@@ -533,7 +525,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 giveaway: g,
                 selectedCurrency: _selectedCurrency,
                 selectedTimezone: _selectedTimezone,
-                userId: widget.user.id, // Kirim user ID untuk wishlist
+                userId: widget.user.id,
               ),
             ),
           );
@@ -542,7 +534,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            // Thumbnail image
+
             ClipRRect(
               borderRadius: BorderRadius.circular(16),
               child: g.thumbnail != null && g.thumbnail!.isNotEmpty
@@ -583,7 +575,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
             ),
-            // Gradient overlay untuk readability
+
             Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(16),
@@ -599,7 +591,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-            // Wishlist button di pojok kanan atas
+
             Positioned(
               top: 8,
               right: 8,
@@ -631,7 +623,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 },
               ),
             ),
-            // Info overlay di bagian bawah
+
             Positioned(
               bottom: 0,
               left: 0,
@@ -642,7 +634,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Title
+
                     Text(
                       g.title,
                       style: const TextStyle(
@@ -662,11 +654,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 8),
-                    // Info tambahan dalam column
+
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Jumlah claimed users
+
                         if (g.users != null)
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -690,7 +682,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               ],
                             ),
                           ),
-                        // FREE badge di bawah claimed users
+
                         if (g.users != null) const SizedBox(height: 6),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -762,7 +754,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // Dialog konfirmasi logout
   Future<void> _showLogoutDialog(BuildContext context) async {
     final confirmed = await showDialog<bool>(
       context: context,

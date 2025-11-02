@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:trial_app/Screens/register_screen.dart';
+import 'package:trial_app/Views/register_screen.dart';
 import 'package:trial_app/Controllers/auth_controller.dart';
-import 'package:trial_app/Screens/home_screen.dart';
+import 'package:trial_app/Views/home_screen.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:trial_app/theme/app_theme.dart';
-
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -50,7 +49,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const SizedBox(height: 20),
-                // Logo/Header Image
+
                 SizedBox(
                   width: double.infinity,
                   height: 180,
@@ -72,7 +71,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                 ),
-                // Title
+
                 const Text(
                   'Welcome Back',
                   style: TextStyle(
@@ -83,7 +82,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 20),
-                // Email Field
+
                 TextField(
                   controller: _email,
                   keyboardType: TextInputType.emailAddress,
@@ -109,7 +108,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 const SizedBox(height: 20),
-                // Password Field
+
                 TextField(
                   controller: _pass,
                   obscureText: true,
@@ -135,7 +134,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 const SizedBox(height: 32),
-                // Login Button
+
                 SizedBox(
                   height: 50,
                   child: ElevatedButton.icon(
@@ -166,7 +165,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                // Register Link
+
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [

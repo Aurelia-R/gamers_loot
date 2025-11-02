@@ -52,7 +52,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 children: [
                   
       
-                // Logo/Header Image
+
                 SizedBox(
                   width: double.infinity,
                   height: 150,
@@ -75,7 +75,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                 ),
                 
-                // Title
+
                 const Text(
                   'Register',
                   style: TextStyle(
@@ -88,7 +88,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 
                
                 const SizedBox(height: 32),
-                // Username Field
+
                 TextField(
                   controller: _uname,
                   style: const TextStyle(color: AppTheme.navyDark),
@@ -113,7 +113,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                 ),
                 const SizedBox(height: 20),
-                // Email Field
+
                 TextField(
                   controller: _email,
                   keyboardType: TextInputType.emailAddress,
@@ -139,7 +139,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                 ),
                 const SizedBox(height: 20),
-                // Password Field
+
                 TextField(
                   controller: _pass,
                   obscureText: true,
@@ -165,7 +165,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                 ),
                 const SizedBox(height: 32),
-                // Register Button
+
                 SizedBox(
                   height: 50,
                   child: ElevatedButton.icon(
@@ -196,7 +196,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                // Login Link
+
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [

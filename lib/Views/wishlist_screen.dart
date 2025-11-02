@@ -3,7 +3,7 @@ import 'package:trial_app/Models/user_model.dart';
 import 'package:trial_app/Models/giveaway_model.dart';
 import 'package:trial_app/Services/wishlist_service.dart';
 import 'package:trial_app/Controllers/giveaway_controller.dart';
-import 'package:trial_app/Screens/games_detail_screen.dart';
+import 'package:trial_app/Views/games_detail_screen.dart';
 import 'package:trial_app/theme/app_theme.dart';
 
 class WishlistScreen extends StatefulWidget {
@@ -147,7 +147,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
                       MaterialPageRoute(
                         builder: (_) => GiveawayDetailPage(
                           giveaway: g,
-                          userId: widget.user.id, // Kirim user ID untuk wishlist
+                          userId: widget.user.id,
                         ),
                       ),
                     );

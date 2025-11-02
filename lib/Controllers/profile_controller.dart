@@ -29,11 +29,10 @@ class ProfileController {
           .from('profile_pics')
           .getPublicUrl(filePath);
 
-      // persist photo_url to profiles table immediately
       await supabase.from('profiles').update({'photo_url': publicUrl}).eq('id', userId);
       return publicUrl;
     } catch (e) {
-      // ignore: avoid_print
+
       print('uploadPhoto error: $e');
       return null;
     }
@@ -44,7 +43,7 @@ class ProfileController {
       final data = await supabase.from('profiles').select().eq('id', id).maybeSingle();
       return data;
     } catch (e) {
-      // ignore: avoid_print
+
       print('getProfile error: $e');
       return null;
     }

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:trial_app/Screens/login_screen.dart';
+import 'package:trial_app/Views/login_screen.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:trial_app/Services/session_service.dart';
 import 'package:trial_app/Services/timezone_service.dart';
 import 'package:trial_app/Services/notification_service.dart';
 import 'package:trial_app/theme/app_theme.dart';
-import 'package:trial_app/Screens/home_screen.dart';
+import 'package:trial_app/Views/home_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();

@@ -1,23 +1,21 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  // Warna utama
-  static const Color navyDark = Color(0xFF1A1F35);      // Navy gelap
-  static const Color green = Color(0xFF4CAF50);         // Hijau
-  static const Color white = Color(0xFFFFFFFF);         // Putih
-  static const Color black = Color(0xFF000000);         // Hitam
 
-  // Warna sekunder
+  static const Color navyDark = Color(0xFF1A1F35);
+  static const Color green = Color(0xFF4CAF50);
+  static const Color white = Color(0xFFFFFFFF);
+  static const Color black = Color(0xFF000000);
+
   static const Color navyLight = Color(0xFF2A3F5F);
   static const Color greyDark = Color(0xFF3A3A3A);
   static const Color greyLight = Color(0xFFF5F5F5);
 
-  // Buat ThemeData untuk light theme
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
       
-      // Color scheme
+
       colorScheme: const ColorScheme.light(
         primary: green,
         secondary: navyDark,
@@ -31,7 +29,6 @@ class AppTheme {
         onError: white,
       ),
 
-      // AppBar theme
       appBarTheme: const AppBarTheme(
         backgroundColor: navyDark,
         foregroundColor: white,
@@ -39,10 +36,8 @@ class AppTheme {
         centerTitle: true,
       ),
 
-      // Scaffold theme
       scaffoldBackgroundColor: navyDark,
 
-      // Card theme
       cardTheme: CardThemeData(
         color: white,
         elevation: 3,
@@ -52,7 +47,6 @@ class AppTheme {
         shadowColor: black.withOpacity(0.1),
       ),
 
-      // Button themes
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: green,
@@ -70,7 +64,6 @@ class AppTheme {
         ),
       ),
 
-      // Input decoration theme
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: white,
@@ -89,7 +82,6 @@ class AppTheme {
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       ),
 
-      // Chip theme
       chipTheme: ChipThemeData(
         backgroundColor: white.withOpacity(0.9),
         selectedColor: green,
@@ -101,7 +93,6 @@ class AppTheme {
         ),
       ),
 
-      // Bottom navigation bar theme
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: navyDark,
         selectedItemColor: green,

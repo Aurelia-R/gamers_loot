@@ -37,28 +37,28 @@ class EventService {
   Future<bool> claimTicket(String userId, EventModel event) async {
     await init();
     
-    // Cek apakah user sudah claim event ini
+
     if (hasUserClaimed(userId, event.id)) {
-      // ignore: avoid_print
+
       print('User $userId sudah claim event ${event.id}');
       return false;
     }
     
-    // Cek apakah masih ada tiket tersedia
+
     if (event.claimedCount >= event.maxTicket) {
-      // ignore: avoid_print
+
       print('Event ${event.id} sudah habis tiketnya');
       return false;
     }
     
-    // Claim tiket
+
     event.claimedCount++;
     final events = await getEvents();
     final index = events.indexWhere((e) => e.id == event.id);
     if (index != -1) events[index] = event;
     await saveEvents(events);
     
-    // Simpan ke user tickets
+
     final ticketsBox = Hive.box(userTicketsBoxName);
     final raw = ticketsBox.get(userId, defaultValue: <String>[]) ?? <String>[];
     final userTickets = List<String>.from(raw.cast<String>());

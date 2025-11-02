@@ -4,11 +4,11 @@ import 'package:trial_app/Models/user_model.dart';
 import 'package:trial_app/Controllers/profile_controller.dart';
 import 'package:trial_app/Controllers/auth_controller.dart';
 import 'package:trial_app/Services/session_service.dart';
-import 'package:trial_app/Screens/login_screen.dart';
+import 'package:trial_app/Views/login_screen.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:trial_app/theme/app_theme.dart';
-import 'package:trial_app/Screens/wishlist_screen.dart';
-import 'package:trial_app/Screens/tickets_screen.dart';
+import 'package:trial_app/Views/wishlist_screen.dart';
+import 'package:trial_app/Views/tickets_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   final UserModel user;
@@ -26,7 +26,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final _email = TextEditingController();
   final _photoUrl = TextEditingController();
   bool _saving = false;
-  bool _isEditing = false; // Mode edit/view
+  bool _isEditing = false;
   final _picker = ImagePicker();
 
   @override
@@ -45,7 +45,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   void _toggleEditMode() {
     if (_isEditing) {
-      // Cancel edit - reset values
+
       _uname.text = widget.user.username;
       _email.text = widget.user.email;
       if (widget.user.photoUrl != null && widget.user.photoUrl!.isNotEmpty) {
@@ -84,7 +84,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       widget.onUserUpdated?.call(updated);
 
       if (!mounted) return;
-      setState(() => _isEditing = false); // Exit edit mode after save
+      setState(() => _isEditing = false);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Profile updated'),
@@ -109,7 +109,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (url != null) {
         final bust = DateTime.now().millisecondsSinceEpoch;
         _photoUrl.text = '$url?v=$bust';
-        // Fetch profile terbaru dari DB agar paling update
+
         final fresh = await _profile.getProfile(widget.user.id);
         if (fresh != null) {
           final updated = UserModel.fromJson(fresh);
@@ -161,7 +161,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Compact Header
+
             Container(
               width: double.infinity,
               padding: const EdgeInsets.fromLTRB(16, 40, 16, 16),
@@ -177,7 +177,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               child: Row(
                 children: [
-                  // Avatar
+
                   Stack(
           children: [
             SizedBox(
@@ -222,7 +222,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
               ),
             ),
-                      // Upload button overlay (hanya muncul saat edit mode)
+
                       if (_isEditing)
                         Positioned(
                           bottom: 0,
@@ -245,7 +245,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ],
                   ),
                   const SizedBox(width: 16),
-                  // Name and Email
+
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -271,7 +271,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ],
                     ),
                   ),
-                  // Edit button
+
                   IconButton(
                     icon: Icon(
                       _isEditing ? Icons.close : Icons.edit,
@@ -284,7 +284,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             ),
 
-            // Profile Information Card (compact)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Card(
@@ -296,7 +295,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   padding: const EdgeInsets.all(12),
                   child: Column(
               children: [
-                      // Username
+
                       if (_isEditing)
                         TextField(
                           controller: _uname,
@@ -316,7 +315,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           value: widget.user.username,
                         ),
                       const SizedBox(height: 12),
-                      // Email
+
                       if (_isEditing)
                         TextField(
                           controller: _email,
@@ -336,7 +335,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           label: 'Email',
                           value: widget.user.email,
                         ),
-                      // Save button (hanya muncul saat edit mode)
+
                       if (_isEditing) ...[
                         const SizedBox(height: 12),
                         SizedBox(
@@ -371,12 +370,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
 
-            // Menu Section (compact)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Column(
                 children: [
-                  // My Wishlist
+
                   _buildCompactMenuCard(
                     icon: Icons.favorite,
                     iconColor: Colors.red,
@@ -391,7 +389,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         },
                       ),
                   const SizedBox(height: 8),
-                  // My Tickets
+
                   _buildCompactMenuCard(
                     icon: Icons.event,
                     iconColor: Colors.blue,
@@ -406,7 +404,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               },
             ),
                   const SizedBox(height: 8),
-                  // Kesan dan Pesan
+
                   _buildCompactMenuCard(
                     icon: Icons.comment,
                     iconColor: AppTheme.green,
@@ -414,7 +412,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     onTap: () => _showFeedbackDialog(),
                   ),
             const SizedBox(height: 16),
-                  // Delete Account Button (kecil)
+
                   TextButton.icon(
                     onPressed: _confirmDelete,
                     icon: const Icon(Icons.delete_forever, size: 18),
@@ -437,7 +435,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     );
   }
 
-  // Helper widget untuk compact menu card
   Widget _buildCompactMenuCard({
     required IconData icon,
     required Color iconColor,
@@ -475,7 +472,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  // Helper widget untuk compact info row
   Widget _buildCompactInfoRow({required IconData icon, required String label, required String value}) {
     return Row(
       children: [
@@ -508,7 +504,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  // Dialog untuk Kesan dan Pesan
   void _showFeedbackDialog() {
     showDialog(
       context: context,
@@ -523,7 +518,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Header
+
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -554,14 +549,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ],
                 ),
               ),
-              // Content
+
               Expanded(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(20),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Subtitle
+
               Text(
                         'Mata Kuliah Pemrograman Aplikasi Mobile',
                 style: TextStyle(
@@ -572,7 +567,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                       const SizedBox(height: 24),
                       
-                      // Kesan Section
+
                       Row(
                         children: [
                           Icon(Icons.thumb_up, color: AppTheme.green, size: 20),
@@ -607,7 +602,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                       const SizedBox(height: 24),
                       
-                      // Pesan Section
+
                       Row(
                         children: [
                           Icon(Icons.message, color: AppTheme.green, size: 20),
@@ -644,7 +639,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
               ),
-              // Footer
+
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: SizedBox(
